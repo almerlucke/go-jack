@@ -120,8 +120,6 @@ type Client struct {
 	shutdownCallback         ShutdownCallback
 }
 
-type AudioSample float32
-
 var (
 	clientMap     map[*C.struct__jack_client]*Client
 	clientMapLock sync.Mutex
@@ -165,6 +163,10 @@ func SetInfoFunction(callback InfoFunction) {
 
 func (client *Client) Activate() int {
 	return int(C.jack_activate(client.handler))
+}
+
+func (client *Client) Deactivate() int {
+	return int(C.jack_deactivate(client.handler))
 }
 
 func (client *Client) CPULoad() float32 {
@@ -379,9 +381,9 @@ func (port *Port) GetType() string {
 	return C.GoString(C.jack_port_type(port.handler))
 }
 
-func (port *Port) GetBuffer(nframes uint32) []AudioSample {
+func (port *Port) GetBuffer(nframes uint32) []float32 {
 	samples := C.jack_port_get_buffer(port.handler, C.jack_nframes_t(nframes))
-	return (*[(1 << 29) - 1]AudioSample)(samples)[:nframes:nframes]
+	return (*[(1 << 29) - 1]float32)(samples)[:nframes:nframes]
 }
 
 type MidiData struct {
